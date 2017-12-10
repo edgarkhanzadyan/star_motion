@@ -18,7 +18,7 @@ const star = {
 	draw: function() {
 		// draw start
 		ctx.beginPath();
-    ctx.arc(this.x / 1e11 * 50, this.y / 1e11 * 50, this.mass / 1e30 * 5, 0, Math.PI * 2, true);
+    ctx.arc(this.x / 1e11 * 50, this.y / 1e11 * 50, this.mass / 1e34 * 5, 0, Math.PI * 2, true);
     ctx.closePath();
     ctx.fillStyle = this.color;
     ctx.fill();
@@ -30,35 +30,35 @@ const options = {
 const array_of_stars = [
 	{
 		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 1e30,
+		mass: 4e34,
 		x: 1e11,
 		y: 5e11,
 		x_vel: 0,
-		y_vel: 0
+		y_vel: 5e6
 	},
 	{
 		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 2e30,
+		mass: 2e34,
 		x: 2e11,
 		y: 5e11,
 		x_vel: 0,
-		y_vel: 0
+		y_vel: -5e6
 	},
 	{
 		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 3e30,
+		mass: 4e34,
 		x: 3e11,
 		y: 5e11,
 		x_vel: 0,
-		y_vel: 0
+		y_vel: 5e6
 	},
 	{
 		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 4e30,
+		mass: 2e34,
 		x: 4e11,
 		y: 5e11,
 		x_vel: 0,
-		y_vel: 0
+		y_vel: -5e6
 	}
 ];
 array_of_stars.map((s) => {
@@ -98,15 +98,11 @@ const getAcceleration = (star_id) => {
 	const summedForce = allForces.reduce(reducer, { x: 0, y: 0 });
 
 	const acceleration = {
-		x: summedForce.x / current_star.mass,
-		y: summedForce.y / current_star.mass
+		x: -(summedForce.x / current_star.mass),
+		y: -(summedForce.y / current_star.mass)
 	};
 
 	return acceleration;
-	// r = sqrt((x2 - x1)**2 + (y2 - y1)**2)
-	// F = G * m1 * m2 / (r ** r)
-	// a = (F1 + F2 + F3) / m
-	// 
 }
 
 const rk4 = (star_id, dt) => {
@@ -120,29 +116,35 @@ const rk4 = (star_id, dt) => {
 	const y = current_star.y;
 	const vx = current_star.x_vel;
 	const vy = current_star.y_vel;
-
+	
+	const coordFunc = (x, v, a, dt) => x + (v * dt) + (a * (dt**2) / 2);
+	const velocityFunc = (v, a, dt) => v + a * dt;
 	const x1 = x;
 	const y1 = y;
 	const vx1 = vx;
 	const vy1 = vy;
 	const { x: ax1, y: ay1 } = getAcceleration(star_id);
 
-	const x2 = x + 0.5 * vx1 * dt;
-	const y2 = y + 0.5 * vy1 * dt;
-	const vx2 = vx1 + 0.5 * ax1 * dt;
-	const vy2 = vy1 + 0.5 * ay1 * dt;
+	const x2 = coordFunc(x, vx1, ax1, dt / 2); //x + 0.5 * vx1 * dt; 
+	const y2 = coordFunc(y, vy1, ay1, dt / 2); // y + 0.5 * vy1 * dt;
+	const vx2 = velocityFunc(vx1, ax1, dt / 2); //vx1 + 0.5 * ax1 * dt;
+	const vy2 = velocityFunc(vy1, ay1, dt / 2); //vy1 + 0.5 * ay1 * dt;
 	const { x: ax2, y: ay2 } = getAcceleration(star_id);
 
-  const x3 = x + 0.5 * vx2 * dt;
-	const y3 = y + 0.5 * vy2 * dt;
-	const vx3 = vx2 + 0.5 * ax2 * dt;
-	const vy3 = vy2 + 0.5 * ay2 * dt;
+  const x3 = coordFunc(x, vx2, ax2, dt / 2); //x + 0.5 * vx2 * dt;
+	const y3 = coordFunc(y, vy2, ay2, dt / 2); //y + 0.5 * vy2 * dt;
+	const vx3 = velocityFunc(vx2, ax2, dt / 2); //vx2 + 0.5 * ax2 * dt;
+	const vy3 = velocityFunc(vy2, ay2, dt / 2); //vy2 + 0.5 * ay2 * dt;
 	const { x: ax3, y: ay3 } = getAcceleration(star_id);
 
-  const x4 = x + 0.5 * vx3 * dt;
-	const y4 = y + 0.5 * vy3 * dt;
-	const vx4 = vx3 + 0.5 * ax3 * dt;
-	const vy4 = vy3 + 0.5 * ay3 * dt;
+	const x4 = coordFunc(x, vx3, ax3, dt); //x + vx3 * dt;
+	const y4 = coordFunc(y, vy3, ay3, dt); //y + vy3 * dt;
+	const vx4 = velocityFunc(vx3, ax3, dt); //vx3 + ax3 * dt;
+	const vy4 = velocityFunc(vy3, ay3, dt); //vy3 + ay3 * dt;
+  // const x4 = x + 0.5 * vx3 * dt;
+	// const y4 = y + 0.5 * vy3 * dt;
+	// const vx4 = vx3 + 0.5 * ax3 * dt;
+	// const vy4 = vy3 + 0.5 * ay3 * dt;
 	const { x: ax4, y: ay4 } = getAcceleration(star_id);
 
 	const xf = x + (dt/6)*(vx1 + 2*vx2 + 2*vx3 + vx4);
@@ -161,8 +163,7 @@ function draw() {
 	options.millisecondsFromStart += 50;
 	for (star_id_str in array_of_stars) {
 		const star_id = parseInt(star_id_str);
-		// // console.log(array_of_stars[star_id]);
-		const result = rk4(star_id, options.millisecondsFromStart);
+		const result = rk4(star_id, FRAME_MILLISECONDS);
 		array_of_stars[star_id].x = result.xf;
 		array_of_stars[star_id].y = result.yf;
 		array_of_stars[star_id].x_vel = result.vxf;

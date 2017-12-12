@@ -109,7 +109,7 @@ const runAnimation = () => {
 				return;
 			}
 		}
-		
+
 		// animation frame instance
 		let raf;
 		// interval instance
@@ -170,6 +170,7 @@ const runAnimation = () => {
 }
 const addStar = () => {
 	const starForm = document.createElement("form");
+	starForm.className = "starForm";
 	const textNodes = [
 		"Mass * 1e34: ",
 		"X Coordinate * 1e11: ",
@@ -190,6 +191,16 @@ const addStar = () => {
 		starForm.appendChild(document.createElement("br"));
 	});
 	const starContainer = document.getElementsByClassName('starContainer')[0];
+	const deleteButton = document.createElement("button");
+	deleteButton.innerHTML = "delete star";
+	deleteButton.setAttribute("type", "button");
+	deleteButton.onclick = () => {
+		const stars = document.getElementsByClassName('starForm');
+		if (stars.length > 1) {
+			starContainer.removeChild(starForm);
+		}
+	}
+	starForm.appendChild(deleteButton);
 	starContainer.appendChild(starForm);
 }
 document.getElementsByClassName('animationButton')[0].onclick = runAnimation;

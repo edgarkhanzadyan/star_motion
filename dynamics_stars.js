@@ -121,6 +121,7 @@ const rk4 = (starId, arrayOfStars, dt) => {
 }
 const runAnimation = () => {
 	const
+		starDt = parseFloat(document.getElementsByClassName('dt')[0].value),
 		starMasses = Array.from(document.getElementsByClassName('mass')),
 		starsXCoords = Array.from(document.getElementsByClassName('xCoord')),
 		starsYCoords = Array.from(document.getElementsByClassName('yCoord')),
@@ -133,7 +134,8 @@ const runAnimation = () => {
 				isNaN(parseFloat(starsXCoords[i].value)) ||
 				isNaN(parseFloat(starsYCoords[i].value)) ||
 				isNaN(parseFloat(starsXVelocity[i].value)) ||
-				isNaN(parseFloat(starsYVelocity[i].value))
+				isNaN(parseFloat(starsYVelocity[i].value)) ||
+				isNaN(starDt)
 			) {
 				document.getElementsByClassName('wrongInputs')[0].innerHTML = "!!!!!Wrong Inputs!!!!!";
 				return;
@@ -183,7 +185,7 @@ const runAnimation = () => {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			for (starIdStr in arrayOfStars) {
 				const starId = parseInt(starIdStr);
-				const result = rk4(starId, arrayOfStars, FRAME_MILLISECONDS / 3);
+				const result = rk4(starId, arrayOfStars, starDt);
 				arrayOfStars[starId].x = result.xf;
 				arrayOfStars[starId].y = result.yf;
 				arrayOfStars[starId].xVel = result.vxf;
@@ -239,6 +241,8 @@ const addStar = starData => {
 }
 const runWithDefaultValues = () => {
 	const starsContainer = document.getElementsByClassName('starContainer')[0];
+	const dt = document.getElementsByClassName('dt')[0];
+	dt.value = FRAME_MILLISECONDS / 3;
 	const stars = Array.from(document.getElementsByClassName('starForm'));
 	stars.forEach((star) => {
 		starsContainer.removeChild(star);

@@ -1,77 +1,25 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const answer = document.getElementById('answer');
-const time = document.getElementById('time');
+// const answer = document.getElementById('answer');
+// const time = document.getElementById('time');
 
 const
 	FRAME_MILLISECONDS = 1000 / 60,
-	NUMBER_OF_STARS = 4,
-	MASSES = [1, 2, 3, 4],
-	X_COORDS = [50, 100, 150, 200],
-	Y_COORDS = [250, 250, 250, 250],
-	X_VELOCITY = [0, 0, 0, 0],
-	Y_VELOCITY = [0, 0, 0, 0],
 	G = 6.673e-11;
 
 const gen_color = () => Math.round(Math.random() * 255);
-const star = {
-	draw: function() {
-		// draw start
-		ctx.beginPath();
-    ctx.arc(this.x / 1e11 * 50, this.y / 1e11 * 50, this.mass / 1e34 * 5, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = this.color;
-    ctx.fill();
-	}
-};
-const array_of_stars = [
-	{
-		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 4e34,
-		x: 1e11,
-		y: 5e11,
-		x_vel: 0,
-		y_vel: -4e6
-	},
-	{
-		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 2e34,
-		x: 2e11,
-		y: 5e11,
-		x_vel: 0,
-		y_vel: 4e6
-	},
-	{
-		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 2e34,
-		x: 3e11,
-		y: 5e11,
-		x_vel: 0,
-		y_vel: 4e6
-	},
-	{
-		color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
-		mass: 4e34,
-		x: 4e11,
-		y: 5e11,
-		x_vel: 0,
-		y_vel: -4e6
-	}
-];
-array_of_stars.map((s) => {
-	Object.assign(s, star);
-});
-const countDistance = (x1, y1, x2, y2) => Math.sqrt((x1 - x2)**2 + (y1 - y2)**2);
-const getAcceleration = (star_id) => {
-	const current_star = array_of_stars.filter((_, i) => i === star_id)[0];
-	const other_stars = array_of_stars.filter((_, i) => i !== star_id);
 
-	const allForces = other_stars.map((star) => {
-		const distance = countDistance(current_star.x, current_star.y, star.x, star.y);
-		const force = G * current_star.mass * star.mass / (distance ** 2);
+const countDistance = (x1, y1, x2, y2) => Math.sqrt((x1 - x2)**2 + (y1 - y2)**2);
+const getAcceleration = (starId, arrayOfStars) => {
+	const currentStar = arrayOfStars.filter((_, i) => i === starId)[0];
+	const otherStars = arrayOfStars.filter((_, i) => i !== starId);
+
+	const allForces = otherStars.map((star) => {
+		const distance = countDistance(currentStar.x, currentStar.y, star.x, star.y);
+		const force = G * currentStar.mass * star.mass / (distance ** 2);
 		const forceVector = {
-			x: current_star.x - star.x,
-			y: current_star.y - star.y,
+			x: currentStar.x - star.x,
+			y: currentStar.y - star.y,
 		};
 		const forceVectorCos = forceVector.x / distance;
 		const forceVectorSin = forceVector.y / distance;
@@ -95,43 +43,42 @@ const getAcceleration = (star_id) => {
 	const summedForce = allForces.reduce(reducer, { x: 0, y: 0 });
 
 	const acceleration = {
-		x: -(summedForce.x / current_star.mass),
-		y: -(summedForce.y / current_star.mass)
+		x: -(summedForce.x / currentStar.mass),
+		y: -(summedForce.y / currentStar.mass)
 	};
 
 	return acceleration;
 }
-
-const rk4 = (star_id, dt) => {
-	const current_star = array_of_stars.filter((_, i) => i === star_id)[0];
-	const x = current_star.x;
-	const y = current_star.y;
-	const vx = current_star.x_vel;
-	const vy = current_star.y_vel;
+const rk4 = (starId, arrayOfStars, dt) => {
+	const currentStar = arrayOfStars.filter((_, i) => i === starId)[0];
+	const x = currentStar.x;
+	const y = currentStar.y;
+	const vx = currentStar.xVel;
+	const vy = currentStar.yVel;
 	
 	// const coordFunc = (x, v, a, dt) => x + (v * dt) + (a * (dt**2) / 2);
 	// const velocityFunc = (v, a, dt) => v + a * dt;
 	const _x1 = vx;
 	const _y1 = vy;
-	const { x: ax1, y: ay1 } = getAcceleration(star_id);
+	const { x: ax1, y: ay1 } = getAcceleration(starId, arrayOfStars);
 	const _vx1 = ax1;
 	const _vy1 = ay1;
 
 	const _x2 = vx + _x1 * (dt / 2);
 	const _y2 = vy + _y1 * (dt / 2);
-	const { x: ax2, y: ay2 } = getAcceleration(star_id);
+	const { x: ax2, y: ay2 } = getAcceleration(starId, arrayOfStars);
 	const _vx2 = ax2 + _vx1 * (dt / 2);
 	const _vy2 = ay2 + _vy1 * (dt / 2);
 
-  const _x3 = vx + _x2 * (dt / 2);
+	const _x3 = vx + _x2 * (dt / 2);
 	const _y3 = vy + _y2 * (dt / 2);
-	const { x: ax3, y: ay3 } = getAcceleration(star_id);
+	const { x: ax3, y: ay3 } = getAcceleration(starId, arrayOfStars);
 	const _vx3 = ax3 + _vx2 * (dt / 2);
 	const _vy3 = ay3 + _vy2 * (dt / 2);
 
 	const _x4 = vx + _x3 * (dt);
 	const _y4 = vy + _y3 * (dt);
-	const { x: ax4, y: ay4 } = getAcceleration(star_id);
+	const { x: ax4, y: ay4 } = getAcceleration(starId, arrayOfStars);
 	const _vx4 = ax4 + _vx3 * (dt);
 	const _vy4 = ay4 + _vy3 * (dt);
 
@@ -142,22 +89,109 @@ const rk4 = (star_id, dt) => {
 	
 	return { xf, yf, vxf, vyf };
 }
-function draw() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	for (star_id_str in array_of_stars) {
-		const star_id = parseInt(star_id_str);
-		const result = rk4(star_id, FRAME_MILLISECONDS / 3);
-		array_of_stars[star_id].x = result.xf;
-		array_of_stars[star_id].y = result.yf;
-		array_of_stars[star_id].x_vel = result.vxf;
-		array_of_stars[star_id].y_vel = result.vyf;
-	}
-	array_of_stars.forEach((s) => {
-		s.draw();
-	})
+const runAnimation = () => {
+	const
+		starMasses = Array.from(document.getElementsByClassName('mass')),
+		starsXCoords = Array.from(document.getElementsByClassName('xCoord')),
+		starsYCoords = Array.from(document.getElementsByClassName('yCoord')),
+		starsXVelocity = Array.from(document.getElementsByClassName('xVel')),
+		starsYVelocity = Array.from(document.getElementsByClassName('yVel'));
+		// check variables
+		for (i in starMasses) {
+			if (
+				isNaN(parseFloat(starMasses[i].value)) ||
+				isNaN(parseFloat(starsXCoords[i].value)) ||
+				isNaN(parseFloat(starsYCoords[i].value)) ||
+				isNaN(parseFloat(starsXVelocity[i].value)) ||
+				isNaN(parseFloat(starsYVelocity[i].value))
+			) {
+				document.getElementsByClassName('wrongInputs')[0].innerHTML = "!!!!!Wrong Inputs!!!!!";
+				return;
+			}
+		}
+		
+		// animation frame instance
+		let raf;
+		// interval instance
+		let intervalId;
+		document.getElementsByClassName('wrongInputs')[0].innerHTML = "";
+		const animationButton = document.getElementsByClassName('animationButton')[0];
+		animationButton.innerHTML = 'Stop Animation!';
+		animationButton.onclick = () => {
+			animationButton.innerHTML = 'Run Animation!';
+			animationButton.onclick = runAnimation;
+			clearInterval(intervalId);
+			window.cancelAnimationFrame(raf);
+		};
 
+		const arrayOfStars = starMasses.map((_, i) => {
+			const 
+				mass = parseFloat(starMasses[i].value),
+				xCoord = parseFloat(starsXCoords[i].value),
+				yCoord = parseFloat(starsYCoords[i].value),
+				xVel = parseFloat(starsXVelocity[i].value),
+				yVel = parseFloat(starsYVelocity[i].value);
+			return {
+				color: `rgb(${gen_color()}, ${gen_color()}, ${gen_color()})`,
+				mass: mass * 1e34, // mass: 4e34,
+				x: (xCoord + 1) * 1e11, // x: 1e11,
+				y: (yCoord + 3) * 1e11, // y: 5e11,
+				xVel: xVel * 1e6, // xVel: 0
+				yVel: yVel * 1e6, // yVel: -4e6
+				draw: function() {
+					// draw start
+					ctx.beginPath();
+					ctx.arc(this.x / 1e11 * 50, this.y / 1e11 * 50, this.mass / 1e34 * 5, 0, Math.PI * 2, true);
+					ctx.closePath();
+					ctx.fillStyle = this.color;
+					ctx.fill();
+				}
+			}
+		});
+		
+		function draw() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			for (starIdStr in arrayOfStars) {
+				const starId = parseInt(starIdStr);
+				const result = rk4(starId, arrayOfStars, FRAME_MILLISECONDS / 3);
+				arrayOfStars[starId].x = result.xf;
+				arrayOfStars[starId].y = result.yf;
+				arrayOfStars[starId].xVel = result.vxf;
+				arrayOfStars[starId].yVel = result.vyf;
+			}
+			arrayOfStars.forEach((s) => {
+				s.draw();
+			})
+		}
+		intervalId = setInterval(
+			() => raf = window.requestAnimationFrame(draw),
+			FRAME_MILLISECONDS
+		);
 }
-intervalId = setInterval(
-	() => raf = window.requestAnimationFrame(draw),
-	FRAME_MILLISECONDS
-);
+const addStar = () => {
+	const starForm = document.createElement("form");
+	const textNodes = [
+		"Mass * 1e34: ",
+		"X Coordinate * 1e11: ",
+		"Y Coordinate * 1e11: ",
+		"Velocity projection on X * 1e6: ",
+		"Velocity projection on Y * 1e6: "
+	];
+	const inputClasses = ['mass','xCoord','yCoord','xVel','yVel'];
+	const texts = textNodes.map(textName => document.createTextNode(textName));
+	const inputs = inputClasses.map((inputName) => {
+		const domElement = document.createElement('input');
+		domElement.className = inputName;
+		return domElement;
+	});
+	const insertInForm = inputClasses.map((_, i) => {
+		starForm.appendChild(texts[i]);
+		starForm.appendChild(inputs[i]);
+		starForm.appendChild(document.createElement("br"));
+	});
+	const starContainer = document.getElementsByClassName('starContainer')[0];
+	starContainer.appendChild(starForm);
+}
+document.getElementsByClassName('animationButton')[0].onclick = runAnimation;
+document.getElementsByClassName('addStarButton')[0].onclick = addStar;
+addStar();

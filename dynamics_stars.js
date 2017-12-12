@@ -152,9 +152,11 @@ const runAnimation = () => {
 		animationButton.onclick = () => {
 			animationButton.innerHTML = 'Run Animation!';
 			animationButton.onclick = runAnimation;
+			document.getElementsByClassName('animationButtonDefaultValues')[0].style.visibility = 'visible';
 			clearInterval(intervalId);
 			window.cancelAnimationFrame(raf);
 		};
+		document.getElementsByClassName('animationButtonDefaultValues')[0].style.visibility = 'hidden';
 
 		const arrayOfStars = starMasses.map((_, i) => {
 			const 

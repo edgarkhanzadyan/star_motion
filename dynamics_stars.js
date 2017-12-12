@@ -213,7 +213,7 @@ const addStar = starData => {
 	const inputs = inputClasses.map((inputName) => {
 		const domElement = document.createElement('input');
 		domElement.className = inputName;
-		if (starData) {
+		if (starData && starData[inputName] !== undefined) {
 			domElement.value = starData[inputName];
 		}
 		return domElement;

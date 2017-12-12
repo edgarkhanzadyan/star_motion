@@ -5,7 +5,37 @@ const ctx = canvas.getContext('2d');
 
 const
 	FRAME_MILLISECONDS = 1000 / 60,
-	G = 6.673e-11;
+	G = 6.673e-11,
+	exampleStarData = [
+		{
+			mass: 2,
+			xCoord: 1,
+			yCoord: 2,
+			xVel: 0,
+			yVel: -1
+		},
+		{
+			mass: 1,
+			xCoord: 2,
+			yCoord: 2,
+			xVel: 0,
+			yVel: -2
+		},
+		{
+			mass: 1,
+			xCoord: 3,
+			yCoord: 2,
+			xVel: 0,
+			yVel: 2
+		},
+		{
+			mass: 2,
+			xCoord: 4,
+			yCoord: 2,
+			xVel: 0,
+			yVel: 1
+		},
+	];
 
 const gen_color = () => Math.round(Math.random() * 255);
 
@@ -168,7 +198,7 @@ const runAnimation = () => {
 			FRAME_MILLISECONDS
 		);
 }
-const addStar = () => {
+const addStar = starData => {
 	const starForm = document.createElement("form");
 	starForm.className = "starForm";
 	const textNodes = [
@@ -183,6 +213,9 @@ const addStar = () => {
 	const inputs = inputClasses.map((inputName) => {
 		const domElement = document.createElement('input');
 		domElement.className = inputName;
+		if (starData) {
+			domElement.value = starData[inputName];
+		}
 		return domElement;
 	});
 	const insertInForm = inputClasses.map((_, i) => {
@@ -202,7 +235,20 @@ const addStar = () => {
 	}
 	starForm.appendChild(deleteButton);
 	starContainer.appendChild(starForm);
+	return starForm;
+}
+const runWithDefaultValues = () => {
+	const starsContainer = document.getElementsByClassName('starContainer')[0];
+	const stars = Array.from(document.getElementsByClassName('starForm'));
+	stars.forEach((star) => {
+		starsContainer.removeChild(star);
+	});
+	exampleStarData.forEach((starData) => {
+		const star = addStar(starData);
+	});
+	runAnimation();
 }
 document.getElementsByClassName('animationButton')[0].onclick = runAnimation;
 document.getElementsByClassName('addStarButton')[0].onclick = addStar;
+document.getElementsByClassName('animationButtonDefaultValues')[0].onclick = runWithDefaultValues;
 addStar();
